@@ -3,6 +3,7 @@ import { BigNumberish } from "ethers"
 import { pnp } from "../types"
 
 /**
+ * @public
  * Expression Notations
  */
 export enum Notations {
@@ -84,6 +85,10 @@ export type ParseTree = Record<
     { tree: Node[]; position: number[] }
 >;
 
+/**
+ * @public
+ * OpMeta-like type
+ */
 export type iOpMetaLike = {
     name: string,
     pushes: (opcode: number, operand: number) => number,
