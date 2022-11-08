@@ -34,6 +34,7 @@ Parser.set(opmeta);
 // the name, description, etc can be modified by the user
 Parser.setGteMeta([, name [, description [, data [, description]);
 Parser.setLteMeta([, name [, description [, data [, description]);
+Parser.setIneqMeta([, name [, description [, data [, description]);
 
 // to execute the parsing and get parse tree object and StateConfig
 let parseTree;
