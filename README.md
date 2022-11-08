@@ -22,7 +22,7 @@ npm install --save-dev https://github.com/rouzwelt/rainlang.git
 Parser is a compiler to generate a valid StateConfig (deployable bytes) from a text i.e. rain expressions.
 ```typescript
 // to import
-import { Parser } from "rain-sdk";
+import { Parser } from "@beehiveinnovation/rainlang";
 
 // to set the custom opmeta, if not set the default standard rain
 // OpMeta will be used
