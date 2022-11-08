@@ -28,19 +28,19 @@ import { Parser } from "rain-sdk";
 Parser.set(opmeta);
 
 // to set the custom details of GTE and LTE opcodes
-Parser.setGteMeta(name?, description?, data?, description?);
-Parser.setLteMeta(name?, description?, data?, description?);
+Parser.setGteMeta([, name [, description [, data [, description]);
+Parser.setLteMeta([, name [, description [, data [, description]);
 
 // to execute the parsing and get parse tree object and StateConfig
 let parseTree;
 let stateConfig;
-[ parseTree, stateConfig ] = Parser.get(expression, customOpMeta);
+[ parseTree, stateConfig ] = Parser.get(expression [, customOpMeta]);
 
 // to get parse tree object only
-let parseTree = Parser.getParseTree(expression, customOpMeta);
+let parseTree = Parser.getParseTree(expression, [, customOpMeta]);
 
 // to get StateConfig only
-let stateConfig = Parser.getStateConfig(expression, customOpMeta);
+let stateConfig = Parser.getStateConfig(expression, [, customOpMeta]);
 
 // to build StateConfig (bytes) from ParseTree object or a Node or array of Node
 let argument: Node || Node[] || ParseTree = object;
