@@ -1,5 +1,5 @@
 import { BigNumberish, BytesLike } from 'ethers'
-
+  
 /**
  * @public
  *
@@ -7,52 +7,62 @@ import { BigNumberish, BytesLike } from 'ethers'
  */
 export enum AllStandardOps {
     /**
-     * Copies a value either off `constants` or `arguments` to the top of
-     * the stack. arguments will go at the end of the constants array.
+     * Get price from Chainlink Oracle
      */
-    CONSTANT,
+    CHAINLINK_PRICE,
     /**
-     * Duplicates any value in the stack to the top of the stack. The operand
-     * specifies the index to copy from.
+     * Execute a source with some inputs taken from the main stack and put the outputs
+     * back into the stack.
      */
-    STACK,
+    CALL,
     /**
-     * stacks an item of the contextual array of values of an underlying contract
-     * passed by caller when calling the contract's methods. operand is the index
-     * to access the desired item in the array.
+     * stacks an item of the contextual 2D array of values of an underlying contract
+     * passed by caller when calling the contract's methods. operand is 2 bytes, each 
+     * used to index 2D array to access the desired item.
      */
     CONTEXT,
+    /**
+     * ABI encodes the entire stack and logs it to the hardhat console.
+     */
+    DEBUG,
+    /**
+     * Execute a source until a condition is no longer true
+     */
+    DO_WHILE,
+    /**
+     * Loop over a source for n times
+     */
+    LOOP_N,
+    /**
+     * Copies a value either off `stack` or `constants` to the top of
+     * the stack.
+     */
+    STATE,
     /**
      * used as local opcodes i.e. opcodes to stack the contract's storage contents i.e.
      * porperties/variables. operand determines the storage location to be stacked.
      */
     STORAGE,
     /**
-     * Takes N values off the stack, interprets them as an array then zips
-     * and maps a source from `sources` over them. The source has access to
-     * the original constants using `1 0` and to zipped arguments as `1 1`.
+     * Hash (solidty kecca256) item(s) of the stack
      */
-    ZIPMAP,
-    /**
-     * ABI encodes the entire stack and logs it to the hardhat console.
-     */
-    DEBUG,
+    HASH,
     /**
      * Opcode for `IERC20` `balanceOf`.
      */
-    IERC20_BALANCE_OF,
+    ERC20_BALANCE_OF,
     /**
      * Opcode for `IERC20` `totalSupply`.
      */
-    IERC20_TOTAL_SUPPLY,
+    ERC20_TOTAL_SUPPLY,
     /**
      * Opcode for `IERC20` use an Snapshot `balanceOfAt`.
      */
-    IERC20_SNAPSHOT_BALANCE_OF_AT,
+    ERC20_SNAPSHOT_BALANCE_OF_AT,
     /**
      * Opcode for `IERC20` use an Snapshot `totalSupplyAt`.
      */
-    IERC20_SNAPSHOT_TOTAL_SUPPLY_AT,
+    ERC20_SNAPSHOT_TOTAL_SUPPLY_AT,
     /**
      * Opcode for `IERC721` `balanceOf`.
      */
@@ -70,13 +80,17 @@ export enum AllStandardOps {
      */
     IERC1155_BALANCE_OF_BATCH,
     /**
+     * Require item(s) ot be true or revert, i.e. greater than zero
+     */
+    ENSURE,
+    /**
      * Opcode for the block number.
      */
     BLOCK_NUMBER,
     /**
      * Opcode for the `msg.sender`.
      */
-    SENDER,
+    CALLER,
     /**
      * Opcode for `this` address of the current contract.
      */
@@ -85,6 +99,10 @@ export enum AllStandardOps {
      * Opcode for the block timestamp.
      */
     BLOCK_TIMESTAMP,
+    /**
+     * Splite an uint256 value into 8 seperate 1 byte size values as uint256 each.
+     */
+    EXPLODE32,
     /**
      * Opcode to rescale some fixed point number to 18 OOMs in situ.
      */
@@ -183,6 +201,28 @@ export enum AllStandardOps {
      */
     SUB,
     /**
+     * Put the remaining number of rTKNs of a SaleV2 into the stack. in order words
+     * the balance of rTKN of the SaleV2 contract
+     */
+    ISALEV2_REMAINING_TOKEN_INVENTORY,
+    /**
+     * Address of the reserve of a SaleV2 contract 
+     */
+    ISALEV2_RESERVE,
+    /**
+     * Status of the a SaleV2 contract, PENDING, LIVE etc
+     */
+    ISALEV2_SALE_STATUS,
+    /**
+     * Address of the rTKN of a SaleV2 contract
+     */
+    ISALEV2_TOKEN,
+    /**
+     * Put the total number of reserve tokens received by a SaleV2 into the stack. 
+     * in order words the balance of reserve token of the SaleV2 contract
+     */
+    ISALEV2_TOTAL_RESERVE_RECEIVED,
+    /**
      * Opcode to call `report` on an `ITierV2` contract.
      */
     ITIERV2_REPORT,
@@ -210,10 +250,9 @@ export enum AllStandardOps {
 
 /**
  * @public
- *
- * Config required to build a new `State`.
+ * Type of valid parsed expression, i.e. compiled bytes 
  */
-export interface StateConfig {
+export type StateConfig = {
     /**
      * Sources verbatim.
      */
@@ -229,7 +268,7 @@ export interface StateConfig {
  * Interface for accessible by vm storage's slots range available for a contract to be
  * used as local opcodes.
  */
-export interface StorageOpcodesRange {
+export type StorageOpcodesRange = {
     /**
      * pointer to the storage slot of the first property of properties of a contract used
      * as STORAGE opcode.
@@ -244,77 +283,94 @@ export interface StorageOpcodesRange {
 /**
  * @public
  */
+export type IOpIO = (opcode: number) => number
+
+/**
+ * @public
+ */
 export type IOpMeta = {
     enum: number;
     name: string;
-    pushes: (opcode: number, operand: number) => number;
-    pops: (opcode: number, operand: number) => number;
-    isZeroOperand: boolean;
+    outputs: IOpIO;
+    inputs: IOpIO;
+    operand: {
+        // if the op's operand is always zero
+        isZeroOperand: boolean;
+        // function for ops' operands that are encoded
+        encoder?: (args: number[]) => number;
+        // function to decode ops' opernads that are encoded
+        decoder?: (operand: number) => number[];
+    },
     description?: string;
     aliases?: string[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data?: any;
 };
 
 /**
  * @public
- * Class for Opcodes number of stack pushes and pops
+ * Valid functions for Opcodes number of stack outputs and inputs
  */
-export const pnp: Record<
+export const opIO: Record<
     string,
-    (_opcode: number, _operand: number) => number
+    (operand: number) => number
 > = {
     /**
      * @public
      */
-    zero: (_opcode: number, _operand: number) => 0,
+    zero: () => 0,
 
     /**
      * @public
      */
-    one: (_opcode: number, _operand: number) => 1,
+    one: () => 1,
 
     /**
      * @public
      */
-    two: (_opcode: number, _operand: number) => 2,
+    two: () => 2,
 
     /**
      * @public
      */
-    three: (_opcode: number, _operand: number) => 3,
+    three: () => 3,
 
     /**
      * @public
      */
-    oprnd: (_opcode: number, _operand: number) => _operand,
+    eight: () => 8,
 
     /**
      * @public
      */
-    derived: (_opcode: number, _operand: number) => {
-        if (_opcode === AllStandardOps.ZIPMAP) {
-            return (_operand >> 5) + 1
-        }
-        if (_opcode === AllStandardOps.SELECT_LTE) {
-            return (_operand & 31) + 1
-        }
-        if (_opcode === AllStandardOps.IERC1155_BALANCE_OF_BATCH) {
-            return _operand * 2 + 1
-        }
-        if (_opcode === AllStandardOps.ITIERV2_REPORT) {
-            return _operand + 2
-        }
-        if (_opcode === AllStandardOps.ITIERV2_REPORT_TIME_FOR_TIER) {
-            return _operand + 3
-        }
-        return NaN
-    },
+    dynamic: (operand: number) => operand,
 
     /**
      * @public
      */
-    zpush: (_opcode: number, _operand: number) => {
-        return 2 ** ((_operand >> 3) & 3)
-    },
+    callInputs: (operand: number) => operand & 7,
+
+    /**
+     * @public
+     */
+    callOutputs: (operand: number) => (operand >> 3) & 3,
+
+    /**
+     * @public
+     */
+    selectLteInputs: (operand: number) => (operand & 31) + 1,
+
+    /**
+     * @public
+     */
+    ierc20BalanceOfBatchInputs: (operand: number) => (operand * 2) + 1,
+
+    /**
+     * @public
+     */
+    iTierV2ReportInputs: (operand: number) => operand  + 2,
+
+    /**
+     * @public
+     */
+    iTierV2ReportTimeForTierInputs: (operand: number) => operand + 3
 }
