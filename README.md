@@ -12,9 +12,9 @@ If you find an issue or you want to propose a better way to show a specific scri
 ## **Tutorial**
 To get started, install the package:
 ```bash
-yarn add --dev https://github.com/rouzwelt/rainlang
+yarn add --dev https://github.com/rouzwelt/rainlang.git
 or
-npm install --save-dev https://github.com/rouzwelt/rainlang
+npm install --save-dev https://github.com/rouzwelt/rainlang.git
 ```
 
 
@@ -24,10 +24,14 @@ Parser is a compiler to generate a valid StateConfig (deployable bytes) from a t
 // to import
 import { Parser } from "rain-sdk";
 
-// to set the custom opmeta
+// to set the custom opmeta, if not set the default standard rain
+// OpMeta will be used
 Parser.set(opmeta);
 
-// to set the custom details of GTE and LTE opcodes
+// to set the custom details of GTE and LTE opcodes.
+// NOTE: LTE,  GTE and INEQ are not native Rain Standard opcodes, so
+// are provided virtually by Parser itself and their properties such as
+// the name, description, etc can be modified by the user
 Parser.setGteMeta([, name [, description [, data [, description]);
 Parser.setLteMeta([, name [, description [, data [, description]);
 
@@ -58,7 +62,7 @@ if use the Human Form to see the output for each combination that they made.
 ## **Developers**
 To get started, clone the repo and install the dependencies:
 ```bash
-git clone https://github.com/rouzwelt/rainlang
+git clone https://github.com/rouzwelt/rainlang.git
 cd rainlang
 yarn install
 ```
