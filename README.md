@@ -7,7 +7,7 @@ This is fundamentally grounded in our belief that accessibility is the differenc
 For more info and details, please read this [article](https://hackmd.io/@REJeq0MuTUiqnjx9w5SsUA/HJj9s-nfi#Rainlang-has-a-spectrum-of-representations-from-concise-gtexplicit)
 
 If you find an issue or you want to propose a better way to show a specific script or opcodes, pleasefeel to do it on: [issues](https://github.com/rouzwelt/rainlang/issues)
-<br>
+
 
 ## **Tutorial**
 To get started, install the package:
@@ -16,7 +16,7 @@ yarn add --dev https://github.com/rouzwelt/rainlang
 or
 npm install --save-dev https://github.com/rouzwelt/rainlang
 ```
-<br>
+
 
 ### **Parser**
 Parser is a compiler to generate a valid StateConfig (deployable bytes) from a text i.e. rain expressions.
@@ -46,14 +46,14 @@ let stateConfig = Parser.getStateConfig(textScript, customOpMeta, customMultiOut
 let argument: Node || Node[] || ParseTree
 let stateConfig = Parser.buildBytes(argument)
 ```
-<br>
+
 
 ### **Formatter**
 The generator of human friendly readable source.
 Parse an StateConfig/Script to a more human readable form, making easier to understand. This form allows users read exactly
 what the Script will do, like the conditions, values used, etc. Also, anyone can learn to write their own scripts
 if use the Human Form to see the output for each combination that they made.
-<br>
+
 
 ## **Developers**
 To get started, clone the repo and install the dependencies:
@@ -62,19 +62,19 @@ git clone https://github.com/rouzwelt/rainlang
 cd rainlang
 yarn install
 ```
-<br>
+
 
 To build from source code:
 ```bash
 yarn run build
 ```
-<br>
+
 
 To generate documents:
 ```bash
 yar run docgen
 ```
-<br>
+
 
 To run tests:
 ```bash
