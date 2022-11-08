@@ -34,16 +34,16 @@ Parser.setLteMeta(name?, description?, data?, description?);
 // to execute the parsing and get parse tree object and StateConfig
 let parseTree;
 let stateConfig;
-[ parseTree, stateConfig ] = Parser.get(textScript, customOpMeta, customMultiOutputPlaceholderChar);
+[ parseTree, stateConfig ] = Parser.get(expression, customOpMeta);
 
 // to get parse tree object only
-let parseTree = Parser.getParseTree(textScript, customOpMeta, customMultiOutputPlaceholderChar);
+let parseTree = Parser.getParseTree(expression, customOpMeta);
 
 // to get StateConfig only
-let stateConfig = Parser.getStateConfig(textScript, customOpMeta, customMultiOutputPlaceholderChar);
+let stateConfig = Parser.getStateConfig(expression, customOpMeta);
 
 // to build StateConfig (bytes) from ParseTree object or a Node or array of Node
-let argument: Node || Node[] || ParseTree
+let argument: Node || Node[] || ParseTree = object;
 let stateConfig = Parser.buildBytes(argument)
 ```
 
