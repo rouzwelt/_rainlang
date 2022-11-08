@@ -28,7 +28,7 @@ import { Parser } from "@beehiveinnovation/rainlang";
 // OpMeta will be used
 Parser.set(opmeta);
 
-// to set the custom details of GTE and LTE opcodes.
+// to set the custom details of GTE, LTE and INEQ opcodes.
 // NOTE: LTE,  GTE and INEQ are not native Rain Standard opcodes, so
 // are provided virtually by Parser itself and their properties such as
 // the name, description, etc can be modified by the user
