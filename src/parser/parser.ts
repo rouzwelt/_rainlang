@@ -350,25 +350,24 @@ export class Parser {
                             isRecord ? argOffset[i] : offset ? offset : 0,
                             constants
                         )
-                        for (let k = 0; k < tmp.sources.length; k++) {
-                            for (let l = 0; l < tmp.sources[k].length; l += 4) {
-                                if (
-                                    tmp.sources[k][l + 1] === AllStandardOps.STATE &&
-                                    (tmp.sources[k] as Uint8Array)[l + 3] >> 7 === 
-                                        MemoryType.Constant
-                                ) {
-                                    // if (constants.includes((tmp.sources[k] as Uint8Array)[l + 3])) {
-                                    //     (tmp.sources[k] as Uint8Array)[l + 3] = constants.indexOf(
-                                    //         (tmp.sources[k] as Uint8Array)[l + 3]
-                                    //     )
-                                    // }
-                                    // else 
-                                    (tmp.sources[k] as Uint8Array)[l + 3] += constants.length
-                                }
-                            }
-                        }
+                        // for (let k = 0; k < tmp.sources.length; k++) {
+                        //     for (let l = 0; l < tmp.sources[k].length; l += 4) {
+                        //         if (
+                        //             tmp.sources[k][l + 1] === AllStandardOps.STATE &&
+                        //             (tmp.sources[k] as Uint8Array)[l + 3] >> 7 === 
+                        //                 MemoryType.Constant
+                        //         ) {
+                        //             // if (constants.includes((tmp.sources[k] as Uint8Array)[l + 3])) {
+                        //             //     (tmp.sources[k] as Uint8Array)[l + 3] = constants.indexOf(
+                        //             //         (tmp.sources[k] as Uint8Array)[l + 3]
+                        //             //     )
+                        //             // }
+                        //             // else 
+                        //             //(tmp.sources[k] as Uint8Array)[l + 3] += constants.length
+                        //         }
+                        //     }
+                        // }
                         sourcesCache.push(...tmp.sources)
-                        constants.push(...tmp.constants)
                     }
                     if (
                         (node as Op).opcode.name === this.gte.name ||
@@ -1628,3 +1627,4 @@ export class Parser {
     }
 }
 
+console.log(Parser.getStateConfig("add(9 5 6 mul(9 6))"))
