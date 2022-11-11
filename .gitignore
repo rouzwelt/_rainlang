@@ -16,3 +16,4 @@ dist
 rainlang.api.json
 
 .DS_Store
+src/.DS_Store

@@ -1,5 +1,5 @@
 import { AllStandardOps, opIO, IOpMeta } from './types'
-import { callOperand, hexlify, loopNOperand, memoryOperand } from './utils'
+import { callOperand, hexlify, loopNOperand, memoryOperand, selectLte, tierRange } from './utils'
 
 /**
  * @public
@@ -12,8 +12,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Takes 2 items from constants array and calls the Chainlink Oracle to get price and insert into the stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['CHAINLINKPRICE', 'PRICE'],
         data: {
@@ -40,10 +44,18 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Takes some items from the stack and runs a source with sub-stack and puts the results back to the stack',
         outputs: opIO.callOutputs,
         inputs: opIO.callInputs,
+        paramsValidRange: (_paramsLength) => _paramsLength >= 0 && _paramsLength < 8,
         operand: {
+            // 3 args that construct CALL operand
+            args: [
+                (_value, _paramsLength) =>
+                    _value < 8 && _value >= 0 && _paramsLength === _value,      // inputSize valid range
+                (_value) => _value < 4 && _value > 0,                           // outputSize valid range
+                (_value) => _value < 8 && _value > 0,                           // sourceIndex valid range
+            ],
             isZeroOperand: false,
-            encoder: (args: number[]) => callOperand(args[0], args[1], args[2]),
-            decoder: (operand: number) => [operand & 7, (operand & 24) >> 3, operand >> 5]
+            encoder: (_args) => callOperand(_args[0], _args[1], _args[2]),
+            decoder: (_operand) => [_operand & 7, (_operand & 24) >> 3, _operand >> 5],
         },
         aliases: ['FUNCTION', 'FN'],
         data: {
@@ -64,7 +76,7 @@ export const standardOpMeta: IOpMeta[] = [
                 {
                     spread: true,
                     name: 'input values',
-                    description: 'Input values, max length is 8.',
+                    args: [],
                 },
             ],
         },
@@ -75,17 +87,23 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts an argument passed to a contracts function into the stack, context is a 2D array of uint256',
         outputs: opIO.one,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            // 2 args that construct CONTEXT operand
+            args: [
+                (_value) => _value < 256 && _value >= 0,     // column valid range
+                (_value) => _value < 256 && _value >= 0,     // row valid range
+            ],
             isZeroOperand: false,
-            encoder: (args: number[]) => Number(hexlify(
+            encoder: (_args) => Number(hexlify(
                 new Uint8Array([
-                    args[0],    // column
-                    args[1]     // row
+                    _args[0],    // column
+                    _args[1]     // row
                 ])
             )),
-            decoder: (operand: number) => [
-                operand >> 8,      // column
-                operand & 0xff     // row
+            decoder: (_operand) => [
+                _operand >> 8,      // column
+                _operand & 0xff     // row
             ]
         },
         data: {
@@ -112,8 +130,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'ABI encodes the entire stack and logs it to the hardhat console.',
         outputs: opIO.zero,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args) => _args[0],
+            decoder: (_operand) => [_operand]
         },
         aliases: ['LOG', 'CONSOLE', 'CONSOLE_LOG'],
         data: {
@@ -129,14 +151,21 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Runs a source on stack item(s) until a condition is not met anymore',
         outputs: opIO.doWhileOutputs,
         inputs: opIO.doWhileInputs,
+        paramsValidRange: (_paramsLength) => _paramsLength > 0,
         operand: {
+            // 1 arg that constructs DO_WHILE operand
+            args: [
+                (_value) => _value < 256 && _value > 0,     // sourceIndex valid range
+            ],
             isZeroOperand: false,
+            encoder: (_args) => _args[0],
+            decoder: (_operand) => [_operand]
         },
         aliases: ['WHILE', 'DOWHILE'],
         data: {
             description: 'Insert a constant into the expression.',
             category: 'core',
-            example: '{ do_while<1>(condition) } { add(2 1) condition }',
+            example: 'do_while<1>(exp1 exp2 condition); add(STATE<0> STATE<1>) sub(STATE<1> 1) condition;',
             parameters: [
                 {
                     spread: false,
@@ -152,19 +181,25 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Loop a source n times on stack items',
         outputs: opIO.loopOutputs,
         inputs: opIO.loopInputs,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            // 2 args that construct LOOP_N operand
+            args: [
+                (_value) => _value < 16 && _value >= 0,     // loopSize valid range
+                (_value) => _value < 16 && _value > 0,     // sourceIndex valid range
+            ],
             isZeroOperand: false,
-            encoder: (args: number[]) => loopNOperand(
-                args[0],    // loop size, n times 
-                args[1]     // source index
+            encoder: (_args) => loopNOperand(
+                _args[0],    // loop size, n times 
+                _args[1]     // source index
             ),
-            decoder: (operand: number) => [operand & 15, operand >> 4]
+            decoder: (_operand) => [_operand & 15, _operand >> 4]
         },
         aliases: ['LOOP', 'LOOPN', 'FOR'],
         data: {
             description: 'Loop a source n times on stack items.',
             category: 'core',
-            example: '{ loop_n<8 1>() } { add(1 2) }',
+            example: 'loop_n<8 1>(exp1 exp2); add(STATE<0> STATE<1>) sub(1 STATE<1>);',
             parameters: [
                 {
                     spread: false,
@@ -185,10 +220,16 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Takes an item from constants array or copy from stack items and insert it into the stack',
         outputs: opIO.one,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            // 2 args that construct STATE operand
+            args: [
+                (_value) => _value < 2 && _value >= 0,     // type of STATE (constants or stack) valid range
+                (_value) => _value < 128 && _value >= 0,     // index valid range
+            ],
             isZeroOperand: false,
-            encoder: (args: number[]) => memoryOperand(args[0], args[1]),
-            decoder: (operand: number) => [operand & 1, (operand & 254) >> 1]
+            encoder: (_args) => memoryOperand(0, _args[0]),
+            decoder: (_operand) => [_operand & 1, (_operand & 254) >> 1]
         },
         data: {
             description: 'Copy stack item into the expression.',
@@ -209,8 +250,14 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Insert a value from contract storage into the stack',
         outputs: opIO.one,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            args: [
+                (_value) => _value < 256 && _value >= 0,     // index of Storage slot valid range
+            ],
             isZeroOperand: false,
+            encoder: (_args) => _args[0],
+            decoder: (_operand) => [_operand]
         },
         aliases: ['MEMORY'],
         data: {
@@ -232,8 +279,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Hash (solidity keccak256) item(s) of the stack and put the result into the stack',
         outputs: opIO.one,
         inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 0,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['ENCODE', 'ENCRYPT'],
         data: {
@@ -255,8 +306,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the balance of an ERC20 token for an account by taking the contract and account address from stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['ERC20_BALANCE_OF', 'ERC20BALANCEOF', 'IERC20BALANCEOF'],
         data: {
@@ -283,8 +338,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the supply of an ERC20 token by taking the contract address from stack',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: [
             'ERC20_TOTAL_SUPPLY',
@@ -310,8 +369,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the snapshot balance of an ERC20 token for an account by taking the contract and account address and snapshot id from stack',
         outputs: opIO.one,
         inputs: opIO.three,
+        paramsValidRange: (_paramsLength) => _paramsLength === 3,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: [
             'ERC20_SNAPSHOT_BALANCE_OF_AT',
@@ -347,8 +410,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the snapshot supply of an ERC20 token by taking the contract address and snapshot id from stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: [
             'ERC20_SNAPSHOT_TOTAL_SUPPLY_AT',
@@ -379,8 +446,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the balance of an ERC721 token for an account by taking the contract and account address from stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: [
             'ERC721_BALANCE_OF',
@@ -411,8 +482,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the owner of an ERC20 token for an account by taking the contract address and token id from stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['ERC721_OWNER_OF', 'ERC721OWNEROF', 'IERC721OWNEROF'],
         data: {
@@ -439,8 +514,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the balance of an ERC1155 token for an account by taking the contract and account address and token id from stack',
         outputs: opIO.one,
         inputs: opIO.three,
+        paramsValidRange: (_paramsLength) => _paramsLength === 3,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: [
             'ERC1155_BALANCE_OF',
@@ -476,8 +555,13 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Get the batch balances of an ERC1155 token for an account by taking the contract address and array of account addresses and token ids from stack',
         outputs: opIO.dynamic,
         inputs: opIO.ierc20BalanceOfBatchInputs,
+        paramsValidRange: (_paramsLength) => 
+            _paramsLength > 2 && ((_paramsLength % 2) === 1),
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => (_paramsLength - 1) / 2,
+            decoder: (_operand) => [(_operand * 2) + 1]
         },
         aliases: [
             'ERC1155_BALANCE_OF_BATCH',
@@ -513,8 +597,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the current block number into the stack',
         outputs: opIO.one,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['CURRENT_BLOCK', 'CURRENTBLOCK', 'BLOCKNUMBER'],
         data: {
@@ -530,8 +618,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the msg.sender address into the stack',
         outputs: opIO.one,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['MSG_SENDER', 'MSGSENDER', 'SIGNER'],
         data: {
@@ -547,8 +639,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts this contract address into the stack',
         outputs: opIO.one,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['THISADDRESS'],
         data: {
@@ -564,8 +660,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Insert the current block timestamp into the stack',
         outputs: opIO.one,
         inputs: opIO.zero,
+        paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: [
             'CURRENT_TIMESTAMP',
@@ -587,8 +687,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Require ietms(s) of the stack to be true, i.e. greater than zero and revert if fails',
         outputs: opIO.one,
         inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 0,
         operand: {
-            isZeroOperand: true,
+            args: [],
+            isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['REQUIRE'],
         data: {
@@ -610,8 +714,14 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Rescale some fixed point number to 18 OOMs in situ.',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
+            args: [
+                (_value) => _value < 256 && _value > 0,
+            ],
             isZeroOperand: false,
+            encoder: (_args) => _args[0],
+            decoder: (_operand) => [_operand]
         },
         aliases: ['SCALE_18'],
         data: {
@@ -638,8 +748,14 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the result of dividing the 2 items of the stack by keeping the 18 fixed point decimals into the stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [
+                (_value) => _value < 256 && _value > 0,
+            ],
             isZeroOperand: false,
+            encoder: (_args) => _args[0],
+            decoder: (_operand) => [_operand]
         },
         aliases: ['SCALE18DIV', 'SCALE_18_DIV'],
         data: {
@@ -671,8 +787,14 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the result of multiplying the 2 items of the stack by keeping the 18 fixed point decimals into the stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [
+                (_value) => _value < 256 && _value > 0,
+            ],
             isZeroOperand: false,
+            encoder: (_args) => _args[0],
+            decoder: (_operand) => [_operand]
         },
         aliases: ['SCALE18MUL', 'SCALE_18_MUL'],
         data: {
@@ -704,8 +826,14 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Scale a fixed point up or down by opernad.',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
+            args: [
+                (_value) => _value < 128 && _value > -129,
+            ],
             isZeroOperand: false,
+            encoder: (_args) => _args[0] < 0 ? 256 + _args[0] : _args[0],
+            decoder: (_operand) => [_operand < 128 ? _operand : _operand - 256]
         },
         aliases: ['SCALEBY'],
         data: {
@@ -732,8 +860,14 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Rescale an 18 OOMs fixed point number to scale N.',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
+            args: [
+                (_value) => _value < 256 && _value > 0,
+            ],
             isZeroOperand: false,
+            encoder: (_args) => _args[0],
+            decoder: (_operand) => [_operand]
         },
         aliases: ['SCALE_N'],
         data: {
@@ -760,8 +894,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Part an uint256 value into 8 seperate 1 byte size values.',
         outputs: opIO.eight,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
-            isZeroOperand: false,
+            args: [],
+            isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['EXPLODE'],
         data: {
@@ -782,9 +920,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'ANY',
         description: 'Inserts the first non-zero value of all the values it checks if there exists one, else inserts zero into the stack.',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['OR', 'ANY_OF', 'ANYOF', '|', '||'],
         data: {
@@ -806,8 +948,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Takes 3 items from the stack and check if the first item is non-zero the inserts the second item into the stack, else inserts the 3rd item',
         outputs: opIO.one,
         inputs: opIO.three,
+        paramsValidRange: (_paramsLength) => _paramsLength === 3,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['EAGERIF', 'IF'],
         data: {
@@ -839,8 +985,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Comapres the last 2 items of the stack together and inserts true/1 into stack if they are euqal, else inserts false/0',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['EQ', 'EQUALTO', '=', '==', '==='],
         data: {
@@ -866,9 +1016,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'EVERY',
         description: 'Inserts the first value of all the values it checks if all of them are non-zero, else inserts zero into the stack.',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['AND', 'ALL_OF', 'ALLOF', '&', '&&'],
         data: {
@@ -890,8 +1044,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Takes last 2 values from stack and puts true/1 into the stack if the first value is greater than the second value and false/0 if not.',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['GT', 'GREATERTHAN', 'BIGGERTHAN', 'BIGGER_THAN', '>'],
         data: {
@@ -918,8 +1076,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Checks if the value is zero and inserts true/1 into the stack if it is, else inserts false/0',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['IS_ZERO', 'FALSE', 'IS_FALSE', 'ISFALSE'],
         data: {
@@ -941,8 +1103,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Takes last 2 values from stack and puts true/1 into the stack if the first value is less than the second value and false/0 if not.',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['LT', 'LESSTHAN', 'LITTLETHAN', 'LITTLE_THAN', '<'],
         data: {
@@ -968,9 +1134,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'SATURATING_ADD',
         description: 'Inserts sum of the specified items from the stack and if prevernts reverts if the result goes above max 256 bit size',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: [
             'SATURATINGADD',
@@ -999,9 +1169,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'SATURATING_MUL',
         description: 'Inserts multiplied result of the specified items from the stack and if prevernts reverts if the result goes above max 256 bit size',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['SATURATINGMUL', 'SAT_MUL', 'SATMUL'],
         data: {
@@ -1022,9 +1196,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'SATURATING_SUB',
         description: 'Inserts subtraction of the specified items from the stack and if prevernts reverts if the result goes blow zero',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: [
             'SATURATINGSUB',
@@ -1053,9 +1231,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'ADD',
         description: 'Inserts the result of sum of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['+', 'SUM'],
         data: {
@@ -1076,9 +1258,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'DIV',
         description: 'Inserts the result of divide of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['/', '÷', 'DIVIDE'],
         data: {
@@ -1099,9 +1285,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'EXP',
         description: 'Inserts the result of exponention of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: [
             '^',
@@ -1129,9 +1319,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'MAX',
         description: 'Inserts the maximum of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['MAXIMUM', 'MAXIMUM_OF', 'MAXIMUMOF', 'MAX_OF', 'MAXOF'],
         data: {
@@ -1152,9 +1346,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'MIN',
         description: 'Inserts the minimum of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['MINIMUM', 'MINIMUM_OF', 'MINIMUMOF', 'MIN_OF', 'MINOF'],
         data: {
@@ -1175,9 +1373,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'MOD',
         description: 'Inserts the mod of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['%'],
         data: {
@@ -1198,9 +1400,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'MUL',
         description: 'Inserts the multiplication of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['*', 'X'],
         data: {
@@ -1221,9 +1427,13 @@ export const standardOpMeta: IOpMeta[] = [
         name: 'SUB',
         description: 'Inserts the subtraction of N values taken from the stack into the stack',
         outputs: opIO.one,
-        inputs: opIO.oprnd,
+        inputs: opIO.dynamic,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength,
+            decoder: (_operand) => [_operand]
         },
         aliases: ['-', 'MINUS'],
         data: {
@@ -1245,8 +1455,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'The remaining rTKNs left to to be sold',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['REMAINING_UNITS'],
         data: {
@@ -1268,8 +1482,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'The reserve token address',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
-            isZeroOperand: true
+            args: [],
+            isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['RESERVE', 'RESERVE_TOKEN', 'RESERVETOKEN'],
         data: {
@@ -1291,8 +1509,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Insert the status of a Sale contract into the stack by taking its address from the stack',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
-            isZeroOperand: true
+            args: [],
+            isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['SALE_STATUS', 'STATUS'],
         data: {
@@ -1314,8 +1536,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'ISALEV2_TOKEN',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
-            isZeroOperand: true
+            args: [],
+            isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['RTKN', 'TOKEN', 'REDEEMABLE_TOKEN'],
         data: {
@@ -1337,8 +1563,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'ISALEV2_TOTAL_RESERVE_RECEIVED',
         outputs: opIO.one,
         inputs: opIO.one,
+        paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
-            isZeroOperand: true
+            args: [],
+            isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['TOTAL_RAISED'],
         data: {
@@ -1360,8 +1590,13 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the report of an account of a tier contract and optionally contexts which are taken from the stack into the stack',
         outputs: opIO.one,
         inputs: opIO.iTierV2ReportInputs,
+        paramsValidRange: (_paramsLength) => 
+            _paramsLength === 2 || _paramsLength === 3 || _paramsLength === 10,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength - 2,
+            decoder: (_operand) => [_operand + 2]
         },
         aliases: [
             'REPORT',
@@ -1400,8 +1635,13 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the specified tier level report of an account of a tier contract and optionally contexts which are taken from the stack into the stack',
         outputs: opIO.one,
         inputs: opIO.iTierV2ReportTimeForTierInputs,
+        paramsValidRange: (_paramsLength) => 
+            _paramsLength === 3 || _paramsLength === 4 || _paramsLength === 11,
         operand: {
+            args: [],
             isZeroOperand: false,
+            encoder: (_args, _paramsLength) => _paramsLength - 3,
+            decoder: (_operand) => [_operand + 3]
         },
         aliases: [
             'ITIERV2REPORTTIMEFORTIER',
@@ -1444,8 +1684,12 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the saturating difference of 2 reports taken from the stack into the stack and prevents reverts if the result below zero',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [],
             isZeroOperand: true,
+            encoder: (_args, _paramsLength) => 0,
+            decoder: (_operand) => [0]
         },
         aliases: ['SAT_DIFF', 'SATDIFF', 'SATURATINGDIFF'],
         data: {
@@ -1472,8 +1716,17 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the result of selecting the less than equal to specified value taken from stack among number of reports by a logic and mode into the stack',
         outputs: opIO.one,
         inputs: opIO.selectLteInputs,
+        paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
+            args: [
+                (_value) => _value >= 0 && _value <= 1,    // logic
+                (_value) => _value >= 0 && _value <= 2,    // mode
+                (_value, _paramsLength) =>
+                    _value >= 1 && _value <= 31 && _paramsLength - _value === 1,   // length
+            ],
             isZeroOperand: false,
+            encoder: (_args) => selectLte(_args[0], _args[1], _args[2]),
+            decoder: (_operand) => [_operand >> 7, (_operand >> 5) & 3, _operand & 31],
         },
         aliases: ['SELECTLTE', 'SELECT'],
         data: {
@@ -1511,8 +1764,15 @@ export const standardOpMeta: IOpMeta[] = [
         description: 'Inserts the result of updating the range of tiers of a report taken from stack by a value taken from the stack into the stack',
         outputs: opIO.one,
         inputs: opIO.two,
+        paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
+            args: [
+                (_value) => _value >= 0 && _value <= 8,    // start tier
+                (_value) => _value >= 0 && _value <= 8,    // end tier
+            ],
             isZeroOperand: false,
+            encoder: (_args) => tierRange(_args[0], _args[1]),
+            decoder: (_operand) => [_operand & 31, _operand >> 4]
         },
         aliases: [
             'UPDATETIMESFORTIERRANGE',

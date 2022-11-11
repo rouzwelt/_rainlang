@@ -283,7 +283,31 @@ export type StorageOpcodesRange = {
 /**
  * @public
  */
-export type IOpIO = (opcode: number) => number
+export type IOpIO = (_operand: number) => number
+
+/**
+ * @public
+ */
+export type OperandArgRange = (_value: number, _paramsLength: number) => boolean
+
+/**
+ * @public
+ */
+export type ParamsValidRange = (_paramsLength: number) => boolean
+
+/**
+ * @public
+ */
+export type IOperand = {
+    // if the op's operand is always zero
+    isZeroOperand: boolean;
+    // specifying the valid range of each operand argument, the length of the array defines the length of the arguments of an opcode
+    args: OperandArgRange[];
+    // function for ops' operands
+    encoder: (_args: number[], _paramsLength: number) => number;
+    // function to decode ops' opernads
+    decoder: (_operand: number) => number[];
+}
 
 /**
  * @public
@@ -293,14 +317,9 @@ export type IOpMeta = {
     name: string;
     outputs: IOpIO;
     inputs: IOpIO;
-    operand: {
-        // if the op's operand is always zero
-        isZeroOperand: boolean;
-        // function for ops' operands that are encoded
-        encoder?: (args: number[]) => number;
-        // function to decode ops' opernads that are encoded
-        decoder?: (operand: number) => number[];
-    },
+    operand: IOperand,
+    // valid number of parameteres an opcode's can have inside its parens
+    paramsValidRange: ParamsValidRange;
     description?: string;
     aliases?: string[];
     data?: any;
@@ -310,10 +329,7 @@ export type IOpMeta = {
  * @public
  * Valid functions for Opcodes number of stack outputs and inputs
  */
-export const opIO: Record<
-    string,
-    (operand: number) => number
-> = {
+export const opIO: Record<string, IOpIO> = {
     /**
      * @public
      */
@@ -342,35 +358,35 @@ export const opIO: Record<
     /**
      * @public
      */
-    dynamic: (operand: number) => operand,
+    dynamic: (_operand: number) => _operand,
 
     /**
      * @public
      */
-    callInputs: (operand: number) => operand & 7,
+    callInputs: (_operand: number) => _operand & 7,
 
     /**
      * @public
      */
-    callOutputs: (operand: number) => (operand >> 3) & 3,
+    callOutputs: (_operand: number) => (_operand >> 3) & 3,
 
     /**
      * @public
      */
-    selectLteInputs: (operand: number) => (operand & 31) + 1,
+    selectLteInputs: (_operand: number) => (_operand & 31) + 1,
 
     /**
      * @public
      */
-    ierc20BalanceOfBatchInputs: (operand: number) => (operand * 2) + 1,
+    ierc20BalanceOfBatchInputs: (_operand: number) => (_operand * 2) + 1,
 
     /**
      * @public
      */
-    iTierV2ReportInputs: (operand: number) => operand  + 2,
+    iTierV2ReportInputs: (_operand: number) => _operand  + 2,
 
     /**
      * @public
      */
-    iTierV2ReportTimeForTierInputs: (operand: number) => operand + 3
+    iTierV2ReportTimeForTierInputs: (_operand: number) => _operand + 3
 }
