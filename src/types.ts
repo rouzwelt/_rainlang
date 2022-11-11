@@ -300,8 +300,6 @@ export type OperandArgRange = (_value: number, _paramsLength: number) => boolean
  * @public
  */
 export type IOperand = {
-    // if the op's operand is always zero
-    isZeroOperand: boolean;
     // specifying the rule of each operand argument, the length of the array defines the length of the arguments of an opcode
     argsRules: OperandArgRange[];
     // function for ops' operands

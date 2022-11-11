@@ -15,7 +15,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -53,7 +52,6 @@ export const standardOpMeta: IOpMeta[] = [
                 (_value) => _value < 4 && _value > 0,                           // outputSize valid range
                 (_value) => _value < 8 && _value > 0,                           // sourceIndex valid range
             ],
-            isZeroOperand: false,
             encoder: (_args) => callOperand(_args[0], _args[1], _args[2]),
             decoder: (_operand) => [_operand & 7, (_operand & 24) >> 3, _operand >> 5],
         },
@@ -94,7 +92,6 @@ export const standardOpMeta: IOpMeta[] = [
                 (_value) => _value < 256 && _value >= 0,     // column valid range
                 (_value) => _value < 256 && _value >= 0,     // row valid range
             ],
-            isZeroOperand: false,
             encoder: (_args) => Number(hexlify(
                 new Uint8Array([
                     _args[0],    // column
@@ -133,7 +130,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args) => _args[0],
             decoder: (_operand) => [_operand]
         },
@@ -157,7 +153,6 @@ export const standardOpMeta: IOpMeta[] = [
             argsRules: [
                 (_value) => _value < 256 && _value > 0,     // sourceIndex valid range
             ],
-            isZeroOperand: false,
             encoder: (_args) => _args[0],
             decoder: (_operand) => [_operand]
         },
@@ -188,7 +183,6 @@ export const standardOpMeta: IOpMeta[] = [
                 (_value) => _value < 16 && _value >= 0,     // loopSize valid range
                 (_value) => _value < 16 && _value > 0,     // sourceIndex valid range
             ],
-            isZeroOperand: false,
             encoder: (_args) => loopNOperand(
                 _args[0],    // loop size, n times 
                 _args[1]     // source index
@@ -227,7 +221,6 @@ export const standardOpMeta: IOpMeta[] = [
                 (_value) => _value < 2 && _value >= 0,     // type of STATE (constants or stack) valid range
                 (_value) => _value < 128 && _value >= 0,     // index valid range
             ],
-            isZeroOperand: false,
             encoder: (_args) => memoryOperand(0, _args[0]),
             decoder: (_operand) => [_operand & 1, (_operand & 254) >> 1]
         },
@@ -255,7 +248,6 @@ export const standardOpMeta: IOpMeta[] = [
             argsRules: [
                 (_value) => _value < 256 && _value >= 0,     // index of Storage slot valid range
             ],
-            isZeroOperand: false,
             encoder: (_args) => _args[0],
             decoder: (_operand) => [_operand]
         },
@@ -282,7 +274,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 0,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -309,7 +300,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -341,7 +331,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -372,7 +361,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 3,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -413,7 +401,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -449,7 +436,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -485,7 +471,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -517,7 +502,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 3,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -559,7 +543,6 @@ export const standardOpMeta: IOpMeta[] = [
             _paramsLength > 2 && ((_paramsLength % 2) === 1),
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => (_paramsLength - 1) / 2,
             decoder: (_operand) => [(_operand * 2) + 1]
         },
@@ -600,7 +583,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -621,7 +603,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -642,7 +623,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -663,7 +643,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 0,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -690,7 +669,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 0,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -719,7 +697,6 @@ export const standardOpMeta: IOpMeta[] = [
             argsRules: [
                 (_value) => _value < 256 && _value > 0,
             ],
-            isZeroOperand: false,
             encoder: (_args) => _args[0],
             decoder: (_operand) => [_operand]
         },
@@ -753,7 +730,6 @@ export const standardOpMeta: IOpMeta[] = [
             argsRules: [
                 (_value) => _value < 256 && _value > 0,
             ],
-            isZeroOperand: false,
             encoder: (_args) => _args[0],
             decoder: (_operand) => [_operand]
         },
@@ -792,7 +768,6 @@ export const standardOpMeta: IOpMeta[] = [
             argsRules: [
                 (_value) => _value < 256 && _value > 0,
             ],
-            isZeroOperand: false,
             encoder: (_args) => _args[0],
             decoder: (_operand) => [_operand]
         },
@@ -831,7 +806,6 @@ export const standardOpMeta: IOpMeta[] = [
             argsRules: [
                 (_value) => _value < 128 && _value > -129,
             ],
-            isZeroOperand: false,
             encoder: (_args) => _args[0] < 0 ? 256 + _args[0] : _args[0],
             decoder: (_operand) => [_operand < 128 ? _operand : _operand - 256]
         },
@@ -865,7 +839,6 @@ export const standardOpMeta: IOpMeta[] = [
             argsRules: [
                 (_value) => _value < 256 && _value > 0,
             ],
-            isZeroOperand: false,
             encoder: (_args) => _args[0],
             decoder: (_operand) => [_operand]
         },
@@ -897,7 +870,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -924,7 +896,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -951,7 +922,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 3,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -988,7 +958,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1020,7 +989,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1047,7 +1015,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1079,7 +1046,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1106,7 +1072,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1138,7 +1103,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1173,7 +1137,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1200,7 +1163,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1235,7 +1197,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1262,7 +1223,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1289,7 +1249,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1323,7 +1282,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1350,7 +1308,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1377,7 +1334,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1404,7 +1360,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1431,7 +1386,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength > 1,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength,
             decoder: (_operand) => [_operand]
         },
@@ -1458,7 +1412,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1485,7 +1438,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1512,7 +1464,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1539,7 +1490,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1566,7 +1516,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 1,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1594,7 +1543,6 @@ export const standardOpMeta: IOpMeta[] = [
             _paramsLength === 2 || _paramsLength === 3 || _paramsLength === 10,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength - 2,
             decoder: (_operand) => [_operand + 2]
         },
@@ -1639,7 +1587,6 @@ export const standardOpMeta: IOpMeta[] = [
             _paramsLength === 3 || _paramsLength === 4 || _paramsLength === 11,
         operand: {
             argsRules: [],
-            isZeroOperand: false,
             encoder: (_args, _paramsLength) => _paramsLength - 3,
             decoder: (_operand) => [_operand + 3]
         },
@@ -1687,7 +1634,6 @@ export const standardOpMeta: IOpMeta[] = [
         paramsValidRange: (_paramsLength) => _paramsLength === 2,
         operand: {
             argsRules: [],
-            isZeroOperand: true,
             encoder: (_args, _paramsLength) => 0,
             decoder: (_operand) => [0]
         },
@@ -1724,7 +1670,6 @@ export const standardOpMeta: IOpMeta[] = [
                 (_value, _paramsLength) =>
                     _value >= 1 && _value <= 31 && _paramsLength - _value === 1,   // length
             ],
-            isZeroOperand: false,
             encoder: (_args) => selectLte(_args[0], _args[1], _args[2]),
             decoder: (_operand) => [_operand >> 7, (_operand >> 5) & 3, _operand & 31],
         },
@@ -1770,7 +1715,6 @@ export const standardOpMeta: IOpMeta[] = [
                 (_value) => _value >= 0 && _value <= 8,    // start tier
                 (_value) => _value >= 0 && _value <= 8,    // end tier
             ],
-            isZeroOperand: false,
             encoder: (_args) => tierRange(_args[0], _args[1]),
             decoder: (_operand) => [_operand & 31, _operand >> 4]
         },

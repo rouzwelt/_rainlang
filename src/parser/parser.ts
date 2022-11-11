@@ -70,7 +70,6 @@ export class Parser {
     private static pushes: IOpIO[] = standardOpMeta.map(v => v.outputs)
     private static oprnds: IOperand[] = standardOpMeta.map(v => v.operand)
     private static aliases: (string[] | undefined)[] = standardOpMeta.map(v => v.aliases)
-    private static zeroOperandOps: boolean[] = standardOpMeta.map(v => v.operand.isZeroOperand)
     private static paramsValidRange: ParamsValidRange[] = standardOpMeta.map(
         v => v.paramsValidRange
     )
@@ -414,7 +413,6 @@ export class Parser {
         this.aliases = _opmeta.map(v => v.aliases)
         this.pops = _opmeta.map(v => v.inputs)
         this.pushes = _opmeta.map(v => v.outputs)
-        this.zeroOperandOps = _opmeta.map(v => v.operand.isZeroOperand)
         for (let i = 0; i < this.aliases.length; i++) {
             if (this.aliases[i]) {
                 this.aliases[i]!.forEach(
@@ -549,7 +547,7 @@ export class Parser {
             this.exp = expressions[i]
             this.exp = this.trim(this.exp)[0]
             let operandArgsOffset = 0
-            
+
             while (this.exp.length > 0) {
                 this.exp = this.trimLeft(this.exp)[0]
                 const entry = hasSemi ? positions[i][0] + 1 : positions[i][0]
@@ -1229,42 +1227,36 @@ export class Parser {
                     this.state.track.operandArgs.cache.length - 1
                 ]
                 if (this.paramsValidRange[op](opNode.parameters.length)) {
-                    if (this.zeroOperandOps[op]) {
-                        opNode.operand = 0
-                        opNode.output = this.pushes[op](0)
-                    }
-                    else {
-                        if (this.oprnds[op].argsRules.length) {
-                            if (this.oprnds[op].argsRules.length === tmpArgs.length) {
-                                let _err = false
-                                for (let i = 0; i < this.oprnds[op].argsRules.length; i++) {
-                                    if (!this.oprnds[op].argsRules[i](
-                                        tmpArgs[i],
-                                        opNode.parameters.length
-                                    )) {
-                                        _err = true
-                                        opNode.error = `out-of-bound operand argument at index ${i}`
-                                        this.pops
-                                    }
-                                }
-                                if (!_err) {
-                                    opNode.operand = this.oprnds[op].encoder(
-                                        tmpArgs,
-                                        opNode.parameters.length
-                                    )
-                                    opNode.output = this.pushes[op](opNode.operand)
-                                    this.state.track.operandArgs.cache.pop()
+                    if (this.oprnds[op].argsRules.length) {
+                        if (this.oprnds[op].argsRules.length === tmpArgs.length) {
+                            let _err = false
+                            for (let i = 0; i < this.oprnds[op].argsRules.length; i++) {
+                                if (!this.oprnds[op].argsRules[i](
+                                    tmpArgs[i],
+                                    opNode.parameters.length
+                                )) {
+                                    _err = true
+                                    opNode.error = `out-of-bound operand argument at index ${i}`
+                                    this.pops
                                 }
                             }
-                            else {
-                                opNode.error = `invalid operand arguments`
-                                opNode.output = NaN
+                            if (!_err) {
+                                opNode.operand = this.oprnds[op].encoder(
+                                    tmpArgs,
+                                    opNode.parameters.length
+                                )
+                                opNode.output = this.pushes[op](opNode.operand)
+                                this.state.track.operandArgs.cache.pop()
                             }
                         }
                         else {
-                            opNode.operand = this.oprnds[op].encoder([], opNode.parameters.length)
-                            opNode.output = this.pushes[op](opNode.operand)
+                            opNode.error = `invalid operand arguments`
+                            opNode.output = NaN
                         }
+                    }
+                    else {
+                        opNode.operand = this.oprnds[op].encoder([], opNode.parameters.length)
+                        opNode.output = this.pushes[op](opNode.operand)
                     }
                 }
                 else {
@@ -1384,7 +1376,7 @@ export class Parser {
                                     name: this.names[i],
                                     position: [startPosition, startPosition + str_.length - 1],
                                 },
-                                operand: this.zeroOperandOps[i] ? 0 : NaN,
+                                operand: NaN,
                                 output: NaN,
                                 position: [startPosition],
                                 parens: [],
@@ -1448,7 +1440,7 @@ export class Parser {
                                 name: this.names[enum_],
                                 position: [startPosition, startPosition + str_.length - 1],
                             },
-                            operand: this.zeroOperandOps[enum_] ? 0 : NaN,
+                            operand: NaN,
                             output: NaN,
                             position: [startPosition],
                             parens: [],
@@ -1621,4 +1613,3 @@ export class Parser {
     }
 }
 
-console.log(Parser.getStateConfig("add(9 5 6); mul(9 6);"))
