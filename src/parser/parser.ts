@@ -1584,10 +1584,10 @@ export class Parser {
      */
     public static updateArgs(config: StateConfig): StateConfig {
         for (let i = 0; i < config.sources.length; i++) {
-            for (let j = 0; j < config.sources[i].length; j += 2) {
-                if (config.sources[i][j] === this.names.length) {
-                    (config.sources[i] as Uint8Array)[j] = 0;
-                    (config.sources[i] as Uint8Array)[j + 1] += config.constants.length
+            for (let j = 0; j < config.sources[i].length; j += 4) {
+                if (config.sources[i][j + 1] === this.names.length) {
+                    (config.sources[i] as Uint8Array)[j + 1] = 0;
+                    (config.sources[i] as Uint8Array)[j + 3] += config.constants.length
                 }
             }
         }
