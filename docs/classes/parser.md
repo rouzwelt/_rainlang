@@ -15,7 +15,7 @@ class Parser
 
 ```typescript
 // to import
-import { Parser } from "rain-sdk";
+import { Parser } from 'rain-sdk';
 
 // to set the custom opmeta
 Parser.set(opmeta)
@@ -54,7 +54,7 @@ let stateConfig = Parser.buildBytes(argument)
 
 |  Method | Description |
 |  --- | --- |
-|  [buildBytes(parseTree, offset)](./parser.md#buildBytes-method-static-1) | Method to get StateConfig (bytes) from a Parse Tree object or a Node or array of Nodes |
+|  [buildBytes(parseTree, offset, constants)](./parser.md#buildBytes-method-static-1) | Method to get StateConfig (bytes) from a Parse Tree object or a Node or array of Nodes |
 |  [get(expression, opmeta, multiOutputPlaceholderChar)](./parser.md#get-method-static-1) | Method to get parse tree object and StateConfig |
 |  [getParseTree(expression, opmeta, multiOutputPlaceholderChar)](./parser.md#getParseTree-method-static-1) | Method to get the parse tree object |
 |  [getStateConfig(expression, opmeta, multiOutputPlaceholderChar)](./parser.md#getStateConfig-method-static-1) | Method to get the StateConfig |
@@ -111,7 +111,7 @@ static sources: BytesLike[];
 
 <a id="buildBytes-method-static-1"></a>
 
-### buildBytes(parseTree, offset)
+### buildBytes(parseTree, offset, constants)
 
 Method to get StateConfig (bytes) from a Parse Tree object or a Node or array of Nodes
 
@@ -121,7 +121,7 @@ Method to get StateConfig (bytes) from a Parse Tree object or a Node or array of
 static buildBytes(parseTree: Node | Node[] | Record<number, Node[]> | Record<number, {
         tree: Node[];
         position: number[];
-    }>, offset?: number): StateConfig;
+    }>, offset?: number, constants?: BigNumberish[]): StateConfig;
 ```
 
 #### Parameters
@@ -130,12 +130,13 @@ static buildBytes(parseTree: Node | Node[] | Record<number, Node[]> | Record<num
 |  --- | --- | --- |
 |  parseTree | <pre>Node \| Node[] \| Record<number, Node[]> \| Record<number, {&#010;    tree: Node[];&#010;    position: number[];&#010;}></pre> | Tree like object (Parse Tree object or a Node or array of Nodes) to get the StateConfig from |
 |  offset | `number` | This argument is used internally and should be ignored when calling this method externally |
+|  constants | `BigNumberish[]` | This argument is used internally and should be ignored when calling this method externally |
 
 <b>Returns:</b>
 
 `StateConfig`
 
-StateConfig
+StateConfig, i.e. compiled bytes
 
 <a id="get-method-static-1"></a>
 
@@ -146,7 +147,7 @@ Method to get parse tree object and StateConfig
 <b>Signature:</b>
 
 ```typescript
-static get(expression: string, opmeta?: typeof rainOpMeta, multiOutputPlaceholderChar?: string): [ParseTree, StateConfig];
+static get(expression: string, opmeta?: typeof standardOpMeta, multiOutputPlaceholderChar?: string): [ParseTree, StateConfig];
 ```
 
 #### Parameters
@@ -154,8 +155,8 @@ static get(expression: string, opmeta?: typeof rainOpMeta, multiOutputPlaceholde
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | `string` | the text expression |
-|  opmeta | `typeof rainOpMeta` | (optional) custom opmeta |
-|  multiOutputPlaceholderChar | `string` | (optional) custom multi output placeholder character, default is "\_" |
+|  opmeta | `typeof standardOpMeta` | (optional) custom opmeta |
+|  multiOutputPlaceholderChar | `string` | (optional) custom multi output placeholder character, default is '\_' |
 
 <b>Returns:</b>
 
@@ -172,7 +173,7 @@ Method to get the parse tree object
 <b>Signature:</b>
 
 ```typescript
-static getParseTree(expression: string, opmeta?: typeof rainOpMeta, multiOutputPlaceholderChar?: string): ParseTree;
+static getParseTree(expression: string, opmeta?: typeof standardOpMeta, multiOutputPlaceholderChar?: string): ParseTree;
 ```
 
 #### Parameters
@@ -180,8 +181,8 @@ static getParseTree(expression: string, opmeta?: typeof rainOpMeta, multiOutputP
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | `string` | the text expression |
-|  opmeta | `typeof rainOpMeta` | (optional) custom opmeta |
-|  multiOutputPlaceholderChar | `string` | (optional) custom multi output placeholder character, default is "\_" |
+|  opmeta | `typeof standardOpMeta` | (optional) custom opmeta |
+|  multiOutputPlaceholderChar | `string` | (optional) custom multi output placeholder character, default is '\_' |
 
 <b>Returns:</b>
 
@@ -198,7 +199,7 @@ Method to get the StateConfig
 <b>Signature:</b>
 
 ```typescript
-static getStateConfig(expression: string, opmeta?: typeof rainOpMeta, multiOutputPlaceholderChar?: string): StateConfig;
+static getStateConfig(expression: string, opmeta?: typeof standardOpMeta, multiOutputPlaceholderChar?: string): StateConfig;
 ```
 
 #### Parameters
@@ -206,8 +207,8 @@ static getStateConfig(expression: string, opmeta?: typeof rainOpMeta, multiOutpu
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  expression | `string` | the text expression |
-|  opmeta | `typeof rainOpMeta` | (optional) custom opmeta |
-|  multiOutputPlaceholderChar | `string` | (optional) custom multi output placeholder character, default is "\_" |
+|  opmeta | `typeof standardOpMeta` | (optional) custom opmeta |
+|  multiOutputPlaceholderChar | `string` | (optional) custom multi output placeholder character, default is '\_' |
 
 <b>Returns:</b>
 
@@ -306,7 +307,7 @@ static updateArgs(config: StateConfig): StateConfig;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  config | [StateConfig](../interfaces/stateconfig.md) |  |
+|  config | [StateConfig](../types/stateconfig.md) |  |
 
 <b>Returns:</b>
 

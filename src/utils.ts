@@ -122,12 +122,13 @@ export function memoryOperand(type: number, offset: number): number {
 }
 
 /**
-   * Constructs the operand for RainInterpreter's `CALL` opcode by packing 3 numbers into a single byte.
-   *
-   * @param inputSize - number of inputs being passed to the source (range 0-7)
-   * @param outputSize - number of output returned by the source (range 1-3)
-   * @param sourceIndex - index of function source
-   */
+ * @public
+ * Constructs the operand for RainInterpreter's `CALL` opcode by packing 3 numbers into a single byte.
+ *
+ * @param inputSize - number of inputs being passed to the source (range 0-7)
+ * @param outputSize - number of output returned by the source (range 1-3)
+ * @param sourceIndex - index of function source
+ */
 export function callOperand(
     inputSize: number,
     outputSize: number,
@@ -145,11 +146,12 @@ export function callOperand(
 }
   
 /**
-   * Constructs the operand for RainInterpreter's `LOOP_N` opcode by packing 2 numbers into a single byte.
-   *
-   * @param n - loop the source for n times (range 0-15)
-   * @param sourceIndex - index of function source
-   */
+ * @public
+ * Constructs the operand for RainInterpreter's `LOOP_N` opcode by packing 2 numbers into a single byte.
+ *
+ * @param n - loop the source for n times (range 0-15)
+ * @param sourceIndex - index of function source
+ */
 export function loopNOperand(n: number, sourceIndex: number): number {
     if (sourceIndex < 0 || sourceIndex > 15) {
         throw new Error("Invalid sourceIndex")

@@ -1240,11 +1240,11 @@ export class Parser {
                         opNode.output = this.pushes[op](0)
                     }
                     else {
-                        if (this.oprnds[op].args.length) {
-                            if (this.oprnds[op].args.length === tmpArgs.length) {
+                        if (this.oprnds[op].argsRules.length) {
+                            if (this.oprnds[op].argsRules.length === tmpArgs.length) {
                                 let _err = false
-                                for (let i = 0; i < this.oprnds[op].args.length; i++) {
-                                    if (!this.oprnds[op].args[i](
+                                for (let i = 0; i < this.oprnds[op].argsRules.length; i++) {
+                                    if (!this.oprnds[op].argsRules[i](
                                         tmpArgs[i],
                                         opNode.parameters.length
                                     )) {

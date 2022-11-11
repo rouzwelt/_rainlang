@@ -301,8 +301,8 @@ export type ParamsValidRange = (_paramsLength: number) => boolean
 export type IOperand = {
     // if the op's operand is always zero
     isZeroOperand: boolean;
-    // specifying the valid range of each operand argument, the length of the array defines the length of the arguments of an opcode
-    args: OperandArgRange[];
+    // specifying the rule of each operand argument, the length of the array defines the length of the arguments of an opcode
+    argsRules: OperandArgRange[];
     // function for ops' operands
     encoder: (_args: number[], _paramsLength: number) => number;
     // function to decode ops' opernads

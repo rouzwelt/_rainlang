@@ -18,6 +18,11 @@ type State = {
             open: number[];
             close: number[];
         };
+        operandArgs: {
+            cache: number[][];
+            errorCache: string[];
+            lenCache: number[];
+        };
     };
     depthLevel: number;
     ambiguity: boolean;
