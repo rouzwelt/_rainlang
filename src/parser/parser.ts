@@ -513,16 +513,18 @@ export class Parser {
 
         // remove indents
         while(script.includes(`\n`)) script = script.replace(`\n`, '')
+        // convert html &nbps to standard whitespace
+        while(script.includes(`&nbsp`)) script = script.replace(`&nbsp`, ' ')
 
         const originalExp = script
         let offset = 0;
         [script, offset] = this.trimLeft(script)
         const expressions: string[] = []
         let positions = [[0, originalExp.length - 1]]
-        let hasSemi = false
+        // let hasSemi = false
 
         if (script.includes(';')) {
-            hasSemi = true
+            // hasSemi = true
             positions = [[
                 offset,
                 originalExp.indexOf(';')
@@ -534,8 +536,8 @@ export class Parser {
                 expressions.push(tmp.slice(0, tmp.length - 1))
                 if (script.includes(';')) {
                     positions.push([
-                        originalExp.length - script.length - offset,
-                        originalExp.length - script.length - offset + script.indexOf(';'),
+                        originalExp.length - script.length,
+                        originalExp.length - script.length + script.indexOf(';'),
                     ])
                 }
             }
@@ -550,7 +552,7 @@ export class Parser {
 
             while (this.exp.length > 0) {
                 this.exp = this.trimLeft(this.exp)[0]
-                const entry = hasSemi ? positions[i][0] + 1 : positions[i][0]
+                const entry = positions[i][0]
                 const currentPosition = 
                     entry + this.input.length - this.exp.length - operandArgsOffset
                 operandArgsOffset = 0
@@ -580,9 +582,10 @@ export class Parser {
                             ],
                             parens: [],
                             parameters: [],
-                            error: this.state.track.operandArgs.errorCache.length > 0
-                                ? this.state.track.operandArgs.errorCache.pop() 
-                                : 'unknown opcode',
+                            error: 
+                            // this.state.track.operandArgs.errorCache.length > 0
+                            //     ? this.state.track.operandArgs.errorCache.pop() 
+                                'unknown opcode',
                         })
                     }
                     this.state.depthLevel++
@@ -611,14 +614,15 @@ export class Parser {
                             const op = this.getTreeElement(
                                 this.state.depthLevel - 1
                             ) as Op
-                            this.updateTree({
-                                error: 'invalid notation',
-                                position: [
-                                    op.position[0],
-                                    Number(postfix[2]) + currentPosition + 1,
-                                ],
-                            },
-                            true
+                            this.updateTree(
+                                {
+                                    error: 'invalid notation',
+                                    position: [
+                                        op.position[0],
+                                        Number(postfix[2]) + currentPosition + 1,
+                                    ],
+                                },
+                                true
                             )
                             this.state.track.notation.pop()
                             this.state.track.notation.pop()
@@ -628,12 +632,19 @@ export class Parser {
                                 postfix[0],
                                 Number(postfix[1]) + currentPosition + 1,
                                 Number(postfix[2]) + currentPosition + 1,
+                                entry,
                                 postfix[3]
                             )
-                            this.exp = this.input.slice(
-                                Number(postfix[2]) + currentPosition + 2 - entry,
-                                this.input.length
-                            )
+                            // this.exp = this.input.slice(
+                            //     Number(postfix[2]) + currentPosition + 2 - entry
+                            // )
+                            // if (this.exp.startsWith('<')) {
+                            //     const _updtatedOp = this.handleOperand(
+                            //         this.getTreeElement(this.state.depthLevel) as Op,
+                            //         true
+                            //     ) as Op
+                            //     this.updateTree(_updtatedOp, true)
+                            // }
                         }
                         else if (this.isPrefix()) {
                             this.resolvePrefix()
@@ -713,14 +724,14 @@ export class Parser {
             offset++
         }
         if (str[0] === ' ' || str[0] === '(' || str[0] === ')') return undefined
-        const str_ = this.handleLetterCase(str)
-        if (str_.startsWith(this.handleLetterCase(this.gte.name))) {
+        const _str = this.handleLetterCase(str)
+        if (_str.startsWith(this.handleLetterCase(this.gte.name))) {
             const tmp = [
                 this.gte.name,
                 offset.toString(),
                 (offset + this.gte.name.length - 1).toString(),
             ]
-            if (str_.replace(this.handleLetterCase(this.gte.name), '').startsWith('(')) tmp.push(
+            if (_str.replace(this.handleLetterCase(this.gte.name), '').startsWith('(')) tmp.push(
                 'ambiguous expression/opcode'
             )
             else if (offset) tmp.push(
@@ -728,13 +739,13 @@ export class Parser {
             )
             return tmp
         }
-        if (str_.startsWith(this.handleLetterCase(this.lte.name))) {
+        if (_str.startsWith(this.handleLetterCase(this.lte.name))) {
             const tmp = [
                 this.lte.name,
                 offset.toString(),
                 (offset + this.lte.name.length - 1).toString(),
             ]
-            if (str_.replace(this.handleLetterCase(this.lte.name), '').startsWith('(')) tmp.push(
+            if (_str.replace(this.handleLetterCase(this.lte.name), '').startsWith('(')) tmp.push(
                 'ambiguous expression/opcode'
             )
             else if (offset) tmp.push(
@@ -742,13 +753,13 @@ export class Parser {
             )
             return tmp
         }
-        if (str_.startsWith(this.handleLetterCase(this.ineq.name))) {
+        if (_str.startsWith(this.handleLetterCase(this.ineq.name))) {
             const tmp = [
                 this.ineq.name,
                 offset.toString(),
                 (offset + this.ineq.name.length - 1).toString(),
             ]
-            if (str_.replace(this.handleLetterCase(this.ineq.name), '').startsWith('(')) tmp.push(
+            if (_str.replace(this.handleLetterCase(this.ineq.name), '').startsWith('(')) tmp.push(
                 'ambiguous expression/opcode'
             )
             else if (offset) tmp.push(
@@ -758,13 +769,13 @@ export class Parser {
         }
         if (this.gte.aliases) {
             for (let i = 0; i < this.gte.aliases.length; i++) {
-                if (str_.startsWith(this.gte.aliases[i])) {
+                if (_str.startsWith(this.gte.aliases[i])) {
                     const tmp = [
                         this.gte.name,
                         offset.toString(),
                         (offset + this.gte.aliases[i].length - 1).toString(),
                     ]
-                    if (str_.replace(this.gte.aliases[i], '').startsWith('(')) tmp.push(
+                    if (_str.replace(this.gte.aliases[i], '').startsWith('(')) tmp.push(
                         'ambiguous expression/opcode'
                     )
                     else if (offset) tmp.push(
@@ -776,13 +787,13 @@ export class Parser {
         }
         if (this.lte.aliases) {
             for (let i = 0; i < this.lte.aliases?.length; i++) {
-                if (str_.startsWith(this.lte.aliases[i])) {
+                if (_str.startsWith(this.lte.aliases[i])) {
                     const tmp = [
                         this.lte.name,
                         offset.toString(),
                         (offset + this.lte.aliases[i].length - 1).toString(),
                     ]
-                    if (str_.replace(this.lte.aliases[i], '').startsWith('(')) tmp.push(
+                    if (_str.replace(this.lte.aliases[i], '').startsWith('(')) tmp.push(
                         'ambiguous expression/opcode'
                     )
                     else if (offset) tmp.push(
@@ -794,13 +805,13 @@ export class Parser {
         }
         if (this.ineq.aliases) {
             for (let i = 0; i < this.ineq.aliases?.length; i++) {
-                if (str_.startsWith(this.ineq.aliases[i])) {
+                if (_str.startsWith(this.ineq.aliases[i])) {
                     const tmp = [
                         this.ineq.name,
                         offset.toString(),
                         (offset + this.ineq.aliases[i].length - 1).toString(),
                     ]
-                    if (str_.replace(this.ineq.aliases[i], '').startsWith('(')) tmp.push(
+                    if (_str.replace(this.ineq.aliases[i], '').startsWith('(')) tmp.push(
                         'ambiguous expression/opcode'
                     )
                     else if (offset) tmp.push(
@@ -811,13 +822,13 @@ export class Parser {
             }
         }
         for (let i = 0; i < this.names.length; i++) {
-            if (str_.startsWith(this.handleLetterCase(this.names[i]))) {
+            if (_str.startsWith(this.handleLetterCase(this.names[i]))) {
                 const tmp = [
                     this.names[i],
                     offset.toString(),
                     (offset + this.names[i].length - 1).toString(),
                 ]
-                if (str_.replace(this.handleLetterCase(this.names[i]), '').startsWith('(')) {
+                if (_str.replace(this.handleLetterCase(this.names[i]), '').startsWith('(')) {
                     this.state.ambiguity = true
                     tmp.push('ambiguous expression/opcode')
                 }
@@ -830,13 +841,13 @@ export class Parser {
         for (let i = 0; i < this.aliases.length; i++) {
             if (this.aliases[i]) {
                 for (let j = 0; j < this.aliases[i]!.length; j++) {
-                    if (str_.startsWith(this.aliases[i]![j])) {
+                    if (_str.startsWith(this.aliases[i]![j])) {
                         const tmp = [
                             this.names[i],
                             offset.toString(),
                             (offset + this.aliases[i]![j].length - 1).toString(),
                         ]
-                        if (str_.replace(this.aliases[i]![j], '').startsWith('(')) {
+                        if (_str.replace(this.aliases[i]![j], '').startsWith('(')) {
                             this.state.ambiguity = true
                             tmp.push('ambiguous expression/opcode')
                         }
@@ -904,7 +915,7 @@ export class Parser {
         }
     }
 
-    private static handleOperand(op?: Op): Op | Error | undefined {
+    private static handleOperand(op?: Op, postfixCheck?: boolean): Op | Error | undefined {
         let _err: string | undefined
         let _len = this.exp.length
         if (!this.exp.includes('>')) _err = 'expected ">"'
@@ -950,18 +961,22 @@ export class Parser {
                 }
             }
         }
-        if (op && _err) {
-            op.error = _err
+        if (op) {
+            if (_err) op.error = _err
+            if (postfixCheck) op.position[1] += _len
             return op
         }
         else {
             _err = 'invalid use of <...>, it should come right after an opcode'
             if (this.exp.startsWith('(')) {
-                this.state.track.operandArgs.errorCache.push(_err)
+                // this.state.track.operandArgs.errorCache.push(_err)
                 this.state.track.operandArgs.lenCache.push(_len)
                 return undefined
             }
-            else return { error: _err, position: [_len] } as Error
+            else return {
+                error: 'invalid use of <...>, it should come right after an opcode',
+                position: [_len]
+            } as Error
         }
     }
 
@@ -1001,8 +1016,10 @@ export class Parser {
         opcode: string,
         startPosition: number,
         endPosition: number,
-        error?: string
+        entry: number,
+        error?: string,
     ) {
+        this.exp = this.input.slice(endPosition + 1 - entry)
         this.state.track.parens.open.pop()
         const tmp: Node[][] = []
         tmp.push(this.state.parse.tree)
@@ -1013,16 +1030,15 @@ export class Parser {
             )
         }
         const node = tmp[tmp.length - 1][tmp[tmp.length - 1].length - 1] as Op
-        tmp[tmp.length - 1][tmp[tmp.length - 1].length - 1] = this.resolveOp({
+        let op = {
             opcode: {
                 name: opcode,
                 position: [startPosition, endPosition],
             },
-            operand: opcode === this.gte.name
-                || opcode === this.lte.name
-                || opcode === this.ineq.name
-                ? 0
-                : NaN,
+            operand: 
+                opcode === this.gte.name || opcode === this.lte.name || opcode === this.ineq.name
+                    ? 0
+                    : NaN,
             output:
                 opcode === this.gte.name || opcode === this.lte.name || opcode === this.ineq.name
                     ? 1
@@ -1038,7 +1054,9 @@ export class Parser {
                         ? this.ineq.data
                         : this.data[this.names.indexOf(opcode)],
             error
-        })
+        } as Op
+        if (this.exp.startsWith('<')) op = this.handleOperand(op, true) as Op
+        tmp[tmp.length - 1][tmp[tmp.length - 1].length - 1] = this.resolveOp(op)
         while (tmp.length > 1) {
             const resolvedExp = tmp.pop()!;
             (tmp[tmp.length - 1][
@@ -1283,8 +1301,7 @@ export class Parser {
     private static consume(entry: number): void {
         if (this.exp.length > 0) {
             let check = true
-            const index =
-            this.findIndex(this.exp) < 0
+            const index = this.findIndex(this.exp) < 0
                 ? this.exp.length
                 : this.findIndex(this.exp) === 0
                     ? 1
