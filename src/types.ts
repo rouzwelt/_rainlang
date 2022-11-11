@@ -288,12 +288,13 @@ export type IOpIO = (_operand: number) => number
 /**
  * @public
  */
-export type OperandArgRange = (_value: number, _paramsLength: number) => boolean
+export type ParamsValidRange = (_paramsLength: number) => boolean
+
 
 /**
  * @public
  */
-export type ParamsValidRange = (_paramsLength: number) => boolean
+export type OperandArgRange = (_value: number, _paramsLength: number) => boolean
 
 /**
  * @public

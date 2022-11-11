@@ -526,19 +526,14 @@ export class Parser {
         if (script.includes(';')) {
             hasSemi = true
             positions = [[
-                originalExp.length - this.trimLeft(originalExp)[0].length,
+                offset,
                 originalExp.indexOf(';')
             ]]
             while (script.includes(';')) {
                 const tmp = script.slice(0, script.indexOf(';') + 1)
-                let length = tmp.length - script.length
-
-                if (length === 0) length = -script.length
-
-                script = script.slice(length)
-                script = this.trim(script)[0]
+                script = script.slice(script.indexOf(';') + 1)
+                script = this.trimLeft(script)[0]
                 expressions.push(tmp.slice(0, tmp.length - 1))
-
                 if (script.includes(';')) {
                     positions.push([
                         originalExp.length - script.length - offset,
@@ -548,14 +543,13 @@ export class Parser {
             }
         }
         else expressions.push(script)
-
         for (let i = 0; i < expressions.length; i++) {
             this.reset()
             this.input = expressions[i]
             this.exp = expressions[i]
             this.exp = this.trim(this.exp)[0]
             let operandArgsOffset = 0
-
+            
             while (this.exp.length > 0) {
                 this.exp = this.trimLeft(this.exp)[0]
                 const entry = hasSemi ? positions[i][0] + 1 : positions[i][0]
@@ -677,7 +671,7 @@ export class Parser {
                 else this.consume(currentPosition)
             }
             this.parseTree[i] = {
-                position: positions.shift()!,
+                position: positions[i],
                 tree: this.state.parse.tree.splice(-this.state.parse.tree.length)
             }
             this.treeArray[i] = this.parseTree[i].tree
@@ -1627,4 +1621,4 @@ export class Parser {
     }
 }
 
-console.log(Parser.getStateConfig("add(9 5 6 mul(9 6))"))
+console.log(Parser.getStateConfig("add(9 5 6); mul(9 6);"))
