@@ -10,6 +10,7 @@ Type of Parser's State
 type State = {
     parse: {
         tree: Node[];
+        tags: Tag[][];
         moCache: (Op | Value)[][];
     };
     track: {

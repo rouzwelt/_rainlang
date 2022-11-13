@@ -19,6 +19,7 @@ export enum Notations {
 export type Error = {
     error: string;
     position: number[];
+    tag?: Tag;
 };
 
 /**
@@ -28,7 +29,8 @@ export type Error = {
 export type Value = {
     value: BigNumberish;
     position: number[];
-    error?: string
+    error?: string;
+    tag?: Tag;
 };
 
 /**
@@ -48,13 +50,22 @@ export type Op = {
     data?: any;
     error?: string;
     infixOp?: boolean;
+    tag?: Tag;
 };
+
+/**
+ * @public
+ */
+export type Tag = {
+    name: string;
+    position: number[]
+}
 
 /**
  * @public
  * Type of Parser's Node
  */
-export type Node = Error | Value | Op;
+export type Node = Error | Value | Op | Tag;
 
 /**
  * @public
@@ -63,19 +74,20 @@ export type Node = Error | Value | Op;
 export type State = {
     parse: {
         tree: Node[];
-        moCache: (Op | Value)[][]
+        tags: Tag[][];
+        moCache: (Op | Value)[][];
     };
     track: {
         notation: number[];
         parens: {
-            open: number[],
-            close: number[]
+            open: number[];
+            close: number[];
         };
         operandArgs: {
-            cache: number[][],
-            errorCache: string[],
-            lenCache: number[]
-        }
+            cache: number[][];
+            errorCache: string[];
+            lenCache: number[];
+        };
     };
     depthLevel: number;
     ambiguity: boolean;

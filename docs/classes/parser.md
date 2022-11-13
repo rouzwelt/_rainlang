@@ -35,9 +35,9 @@ let parseTree = Parser.getParseTree(textScript, customOpMeta, customMultiOutputP
 // to get StateConfig only
 let stateConfig = Parser.getStateConfig(textScript, customOpMeta, customMultiOutputPlaceholderChar);
 
-// to build StateConfig (bytes) from ParseTree object or a Node or array of Node
+// to build StateConfig (compile) from ParseTree object or a Node or array of Node
 let argument: Node || Node[] || ParseTree
-let stateConfig = Parser.buildBytes(argument)
+let stateConfig = Parser.compile(argument)
 
 ```
 
@@ -54,7 +54,7 @@ let stateConfig = Parser.buildBytes(argument)
 
 |  Method | Description |
 |  --- | --- |
-|  [buildBytes(parseTree, offset, constants)](./parser.md#buildBytes-method-static-1) | Method to get StateConfig (bytes) from a Parse Tree object or a Node or array of Nodes |
+|  [compile(parseTree, offset, constants)](./parser.md#compile-method-static-1) | Method to get StateConfig (bytes) from a Parse Tree object or a Node or array of Nodes |
 |  [get(expression, opmeta, multiOutputPlaceholderChar)](./parser.md#get-method-static-1) | Method to get parse tree object and StateConfig |
 |  [getParseTree(expression, opmeta, multiOutputPlaceholderChar)](./parser.md#getParseTree-method-static-1) | Method to get the parse tree object |
 |  [getStateConfig(expression, opmeta, multiOutputPlaceholderChar)](./parser.md#getStateConfig-method-static-1) | Method to get the StateConfig |
@@ -109,16 +109,16 @@ static sources: BytesLike[];
 
 ## Static Method Details
 
-<a id="buildBytes-method-static-1"></a>
+<a id="compile-method-static-1"></a>
 
-### buildBytes(parseTree, offset, constants)
+### compile(parseTree, offset, constants)
 
 Method to get StateConfig (bytes) from a Parse Tree object or a Node or array of Nodes
 
 <b>Signature:</b>
 
 ```typescript
-static buildBytes(parseTree: Node | Node[] | Record<number, Node[]> | Record<number, {
+static compile(parseTree: Node | Node[] | Record<number, Node[]> | Record<number, {
         tree: Node[];
         position: number[];
     }>, offset?: number, constants?: BigNumberish[]): StateConfig;

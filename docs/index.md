@@ -79,5 +79,6 @@
 |  [State](./types/state.md) | Type of Parser's State |
 |  [StateConfig](./types/stateconfig.md) | Type of valid parsed expression, i.e. compiled bytes |
 |  [StorageOpcodesRange](./types/storageopcodesrange.md) | Interface for accessible by vm storage's slots range available for a contract to be used as local opcodes. |
+|  [Tag](./types/tag.md) |  |
 |  [Value](./types/value.md) | Type of Parser's Value node |
 
