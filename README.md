@@ -49,7 +49,7 @@ let stateConfig = Parser.getStateConfig(expression, [, customOpMeta]);
 
 // to build(compile) StateConfig from ParseTree object or a Node or array of Node
 let argument: Node || Node[] || ParseTree = objectInstanceOfSpecifiedType;
-let stateConfig = Parser.buildBytes(argument)
+let stateConfig = Parser.compile(argument)
 ```
 
 
